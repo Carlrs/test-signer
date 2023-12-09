@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"test-signer/entity"
+	"test-signer/entity/request"
 	"test-signer/service"
 	"test-signer/util"
 )
@@ -24,19 +25,26 @@ func (s SignatureController) Init(sr *util.SharedResources) {
 }
 
 func (s SignatureController) sign(c *gin.Context) {
-	test := &entity.Test{}
-	err := c.ShouldBindJSON(test)
+	testRequest := &request.TestRequest{}
+	err := c.ShouldBindJSON(testRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, entity.Response{Error: "invalid_request_body"})
 		return
 	}
-	err = s.testService.Save(*test)
+	test := &testRequest.Test
+	test, err = s.testService.Save(*test)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, entity.Response{Error: "failed_to_save_test"})
 		return
 	}
+	signature, err := s.signatureService.Sign(*test)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, entity.Response{Error: "failed_to_sign_test"})
+		return
+	}
+	c.JSON(http.StatusOK, entity.Response{Data: signature})
 }
 
 func (s SignatureController) verify(c *gin.Context) {
-
+	c.ShouldBindJSON()
 }

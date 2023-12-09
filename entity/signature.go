@@ -8,6 +8,6 @@ import (
 type Signature struct {
 	ID        int       `gorm:"primary_key"`
 	Uuid      uuid.UUID `json:"uuid" gorm:"type:uuid,unique"`
-	User      string    `json:"user" gorm:"type:varchar(128)"`
-	Timestamp time.Time `json:"timestamp" gorm:"DEFAULT:CURRENT_TIMESTAMP"`
+	User      string    `gorm:"type:varchar(128)"`
+	Timestamp time.Time `gorm:"DEFAULT:CURRENT_TIMESTAMP"`
 }

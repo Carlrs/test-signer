@@ -14,6 +14,6 @@ func (t TestService) Init(sr *util.SharedResources) {
 	t.repository.Init(sr)
 }
 
-func (t TestService) Save(test entity.Test) (entity.Test, error) {
+func (t TestService) Save(test entity.Test) (*entity.Test, error) {
 	return t.repository.Save(test)
 }

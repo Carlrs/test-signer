@@ -14,7 +14,7 @@ func (t TestRepository) Init(sr *util.SharedResources) {
 	t.db = sr.Db
 }
 
-func (t TestRepository) Save(test entity.Test) (entity.Test, error) {
+func (t TestRepository) Save(test entity.Test) (*entity.Test, error) {
 	err := t.db.Save(test).Error
-	return test, err
+	return &test, err
 }
