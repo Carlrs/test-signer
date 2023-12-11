@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"test-signer/entity"
@@ -20,6 +21,7 @@ func (s SignatureController) Register(r *gin.Engine) {
 }
 
 func (s SignatureController) Init(sr *util.SharedResources) {
+	fmt.Printf("Pointer: %v\n", sr)
 	s.signatureService.Init(sr)
 	s.testService.Init(sr)
 }
@@ -32,12 +34,17 @@ func (s SignatureController) sign(c *gin.Context) {
 		return
 	}
 	test := &testRequest.Test
+	userJWT := testRequest.UserJWT
+	userUUID, err := util.ExtractUserUUID(userJWT)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, entity.Response{Error: "invalid_user_token"})
+	}
 	test, err = s.testService.Save(*test)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, entity.Response{Error: "failed_to_save_test"})
 		return
 	}
-	signature, err := s.signatureService.Sign(*test)
+	signature, err := s.signatureService.Sign(*test, userUUID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, entity.Response{Error: "failed_to_sign_test"})
 		return
@@ -46,5 +53,17 @@ func (s SignatureController) sign(c *gin.Context) {
 }
 
 func (s SignatureController) verify(c *gin.Context) {
-	c.ShouldBindJSON()
+	signatureRequest := &request.SignatureRequest{}
+	err := c.ShouldBindJSON(signatureRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, entity.Response{Error: "invalid_request_body"})
+		return
+	}
+	signature := signatureRequest.Signature
+	userJWT := signatureRequest.UserJWT
+	userUUID, err := util.ExtractUserUUID(userJWT)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, entity.Response{Error: "invalid_user_token"})
+	}
+	s.testService.FindBySignature(&signature, userUUID)
 }

@@ -8,6 +8,10 @@ import (
 type Signature struct {
 	ID        int       `gorm:"primary_key"`
 	Uuid      uuid.UUID `json:"uuid" gorm:"type:uuid,unique"`
-	User      string    `gorm:"type:varchar(128)"`
+	User      uuid.UUID `gorm:"type:uuid"`
 	Timestamp time.Time `gorm:"DEFAULT:CURRENT_TIMESTAMP"`
+}
+
+type Signable interface {
+	Sign(signature Signature)
 }

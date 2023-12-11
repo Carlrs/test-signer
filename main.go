@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"os"
 	"reflect"
 	"strconv"
@@ -14,25 +15,31 @@ import (
 const DefaultPort = 8080
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Failed to load dotenv")
+		return
+	}
 	r := gin.Default()
-	sr, err := util.SharedResources{}.Generate()
+	sr := &util.SharedResources{}
+	err := sr.Generate()
 	if err != nil {
 		fmt.Printf("Failed to initialize shared resources. Error: %s\n", err.Error())
 		return
-	}
-	var controllers []controller.Controller
-	controllers = append(controllers, controller.SignatureController{})
-	for _, c := range controllers {
-		c.Init(sr)
-		c.Register(r)
 	}
 	var entities []interface{}
 	entities = append(entities, entity.Test{}, entity.Signature{}, entity.QuestionAnswer{})
 	for _, e := range entities {
 		if err = sr.Db.AutoMigrate(e); err != nil {
-			fmt.Printf("Failed to automigratemigrate table for entity %s, error: %s", reflect.TypeOf(e), err.Error())
+			fmt.Printf("Failed to automigrate table for entity %s, error: %s", reflect.TypeOf(e), err.Error())
 			return
 		}
+	}
+
+	var controllers []controller.Controller
+	controllers = append(controllers, controller.SignatureController{})
+	for _, c := range controllers {
+		c.Init(sr)
+		c.Register(r)
 	}
 
 	port, err := strconv.Atoi(os.Getenv("SIGNER_PORT"))

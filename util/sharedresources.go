@@ -11,23 +11,24 @@ type SharedResources struct {
 	Db *gorm.DB
 }
 
-func (sr SharedResources) Generate() (*SharedResources, error) {
+func (sr SharedResources) Generate() error {
 	if db, err := getDb(); err != nil {
-		return &sr, err
+		return err
 	} else {
 		sr.Db = db
 	}
-	return &sr, nil
+	return nil
 }
 
 func getDb() (*gorm.DB, error) {
-	dialector := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
 		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
 		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PWD"),
+		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_DB"))
 
-	conn, err := gorm.Open(postgres.Open(dialector), &gorm.Config{
+	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DryRun: false,
 	})
 	return conn, err

@@ -5,3 +5,7 @@ type Test struct {
 	Signature Signature
 	Answers   []QuestionAnswer `json:"answers"`
 }
+
+func (t Test) Sign(signature Signature) {
+	t.Signature = signature
+}
